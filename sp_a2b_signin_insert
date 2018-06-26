@@ -1,0 +1,62 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_a2b_signin_insert`(
+IN v_podio_name varchar(45), 
+IN v_podio_userid varchar(45), 
+IN v_date datetime, 
+IN v_category varchar(45), 
+IN v_createdon datetime, 
+IN v_createdby varchar(45), 
+IN v_uniqueid varchar(45), 
+IN v_itemid int, 
+IN v_link text,
+IN last_edited datetime)
+BEGIN
+#declare roolback on failed insert
+DECLARE errno INT;
+DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+BEGIN
+	GET CURRENT DIAGNOSTICS CONDITION 1 errno = MYSQL_ERRNO;
+    SELECT errno AS MYSQL_ERROR;
+	ROLLBACK;
+END;
+
+START TRANSACTION;
+#start insert
+INSERT INTO `t_a2b_signin`
+(`f_podio_name`,
+`f_podio_userid`,
+`f_date`,
+`f_category`,
+`f_createdon`,
+`f_createdby`,
+`f_uniqueid`,
+`f_itemid`,
+`f_link`,
+`f_signout`)
+VALUES
+(
+v_podio_name,
+v_podio_userid,
+v_date,
+v_category,
+v_createdon,
+v_createdby,
+v_uniqueid,
+v_itemid,
+v_link,
+last_edited)
+ON DUPLICATE KEY UPDATE
+	`f_podio_name` = v_podio_name,
+	`f_podio_userid` = v_podio_userid,
+	`f_date` = v_date,
+	`f_category` = v_category,
+	`f_createdon` = v_createdon,
+	`f_createdby` = v_createdby,
+	`f_uniqueid` = v_uniqueid,
+	`f_itemid` = v_itemid,
+	`f_link` = v_link,
+    `f_signout` = last_edited
+; 
+#end insert
+
+COMMIT;
+END

@@ -1,0 +1,62 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_ot_request`(
+	IN v_podio_name varchar(45),  
+	IN v_date datetime, 
+	IN v_category varchar(45), 
+	IN v_createdby varchar(45),
+    IN v_createdon datetime,
+	IN v_itemid int,
+    IN v_uniqueid int,
+	IN v_hours int,
+	IN v_assigned varchar(45),
+	IN v_details text)
+BEGIN
+	#declare roolback on failed insert
+	DECLARE errno INT;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+	BEGIN
+		GET CURRENT DIAGNOSTICS CONDITION 1 errno = MYSQL_ERRNO;
+	    SELECT errno AS MYSQL_ERROR;
+		ROLLBACK;
+	END;
+
+	START TRANSACTION;
+	#start insert
+	INSERT INTO `t_ot_request_table`
+	(`f_podio_name`,
+	`f_date`,
+	`f_category`,
+	`f_createdby`,
+    `f_createdon`,
+	`f_itemid`,
+    `f_uniqueid`,
+	`f_hours`,
+	`f_assigned`,
+	`f_details`)
+	VALUES
+	(
+	v_podio_name,
+	v_date,
+	v_category,
+	v_createdby,
+    v_createdon,
+	v_itemid,
+    v_uniqueid,
+	v_hours,
+	v_assigned,
+	v_details)
+	ON DUPLICATE KEY UPDATE
+		`f_podio_name` = v_podio_name,
+		`f_date` = v_date,
+		`f_category` = v_category,
+		`f_createdby` = v_createdby,
+        `f_createdon` = v_createdon,
+		`f_itemid` = v_itemid,
+        `f_uniqueid` = v_uniqueid,
+		`f_hours` = v_hours,
+		`f_assigned` = v_assigned,
+		`f_details` = v_details
+	; 
+	#end insert
+
+	COMMIT;
+	END

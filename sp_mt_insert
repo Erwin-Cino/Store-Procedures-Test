@@ -1,0 +1,130 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_mt_insert`(
+IN v_uniqueid varchar(30),
+IN v_createdon datetime, 
+IN v_createdby varchar(45), 
+IN v_date datetime, 
+IN v_hours float, 
+IN v_billstat varchar(20), 
+IN v_invoice varchar(20), 
+IN v_webhookclient varchar(45), 
+IN v_webhookproj varchar(45), 
+IN v_webhooktask varchar(45), 
+IN v_webhookemp varchar(45),
+IN v_empid varchar(45),
+IN v_emprel varchar(45),
+IN v_invnum varchar(20),
+IN v_invperiod varchar(20),
+IN v_clientrel varchar(45),
+IN v_projectrel varchar(45),
+IN v_taskrel varchar(45),
+IN v_comments text,
+IN v_todo text,
+IN v_org varchar(20),
+IN v_revid int,
+IN v_itemid varchar(45),
+IN v_item_link text
+)
+BEGIN
+#this will insert data in table t_mastertime and t_mastertime_detail
+
+#declare roolback on failed insert
+DECLARE errno INT;
+DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+BEGIN
+	GET CURRENT DIAGNOSTICS CONDITION 1 errno = MYSQL_ERRNO;
+    SELECT errno AS MYSQL_ERROR;
+	ROLLBACK;
+END;
+
+START TRANSACTION;
+#start first insert
+INSERT INTO `t_mastertime`
+	(`f_uniqueid`,
+	`f_createdon`,
+	`f_createdby`,
+	`f_date`,
+	`f_hours`,
+	`f_billstat`,
+	`f_invoice`,
+	`f_webhookclient`,
+	`f_webhookproj`,
+	`f_webhooktask`,
+	`f_webhookemp`,
+    `f_itemid`)
+VALUES
+	(v_uniqueid,
+	v_createdon,
+	v_createdby,
+	v_date,
+	v_hours,
+	v_billstat,
+	v_invoice,
+	v_webhookclient,
+	v_webhookproj,
+	v_webhooktask,
+	v_webhookemp,
+    v_itemid)
+ON DUPLICATE KEY UPDATE
+	`f_createdon` = v_createdon,
+	`f_createdby` = v_createdby,
+	`f_date` = v_date,
+	`f_hours` = v_hours,
+	`f_billstat` = v_billstat,
+	`f_invoice` = v_invoice,
+	`f_webhookclient` = v_webhookclient,
+	`f_webhookproj` = v_webhookproj,
+	`f_webhooktask` = v_webhooktask,
+	`f_webhookemp` = v_webhookemp,
+    `f_itemid` = v_itemid
+; 
+#end first insert
+
+#start second insert
+INSERT INTO `t_mastertime_detail`
+	(`f_empid`,
+	`f_emprel`,
+	`f_invnum`,
+	`f_invperiod`,
+	`f_clientrel`,
+	`f_projectrel`,
+	`f_taskrel`,
+	`f_comments`,
+	`f_todo`,
+	`f_org`,
+	`f_uniqueid`,
+    `f_revid`,
+    `f_itemid`,
+    `f_item_link`)
+VALUES
+	(v_empid,
+	v_emprel,
+	v_invnum,
+	v_invperiod,
+	v_clientrel,
+	v_projectrel,
+	v_taskrel,
+	v_comments,
+	v_todo,
+	v_org,
+	v_uniqueid,
+    v_revid,
+    v_itemid,
+    v_item_link)
+ON DUPLICATE KEY UPDATE
+	`f_empid` = v_empid,
+	`f_emprel` = v_emprel,
+	`f_invnum` = v_invnum,
+	`f_invperiod` = v_invperiod,
+	`f_clientrel` = v_clientrel,
+	`f_projectrel` = v_projectrel,
+	`f_taskrel` = v_taskrel,
+	`f_comments` = v_comments,
+	`f_todo` = v_todo,
+	`f_org` = v_org,
+    `f_revid` = v_revid,
+    `f_itemid` = v_itemid,
+    `f_item_link` = v_item_link
+; #end second insert
+
+COMMIT;
+END
